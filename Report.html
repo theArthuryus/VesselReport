@@ -33,7 +33,7 @@
       width: 720px;
       height: 800px;
       max-width: 100%;
-      background-color: #fff; /* Explicit white background */
+      background-color: #fff;
     }
     .container {
       width: 720px;
@@ -42,7 +42,7 @@
       margin: 0;
       display: flex;
       flex-direction: column;
-      background-color: #fff; /* Ensure container has white background */
+      background-color: #fff;
     }
     .photo-grid {
       display: grid;
@@ -51,14 +51,14 @@
       gap: 0;
       width: 720px;
       height: 770px;
-      background-color: #fff; /* Ensure grid has white background */
+      background-color: #fff;
     }
     .photo-grid img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       cursor: move;
-      display: block; /* Ensure images render properly */
+      display: block;
     }
     .info-section {
       width: 720px;
@@ -70,8 +70,8 @@
       margin: 0;
       font-weight: bold;
       font-size: 0.7rem;
-      background-color: #fff; /* Explicit background for info section */
-      color: #000; /* Ensure text is black for visibility */
+      background-color: #fff;
+      color: #000;
     }
     .info-content {
       display: flex;
@@ -123,7 +123,7 @@
       width: 20px;
       height: 20px;
       vertical-align: middle;
-      display: inline-block; /* Ensure weather icons render */
+      display: inline-block;
     }
     .upload-container {
       margin-bottom: 10px;
@@ -162,6 +162,23 @@
     }
     #weatherToggle.off {
       background-color: #dc3545;
+    }
+    #weatherModeToggle {
+      background-color: #ffc107;
+      margin-bottom: 10px;
+    }
+    #weatherModeToggle.manual {
+      background-color: #17a2b8;
+    }
+    #manualWeatherInputs {
+      margin-top: 10px;
+    }
+    #manualWeatherInputs select {
+      padding: 5px;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      width: 100%;
+      box-sizing: border-box;
     }
   </style>
 </head>
@@ -208,6 +225,45 @@
       </select>
 
       <button id="weatherToggle" onclick="toggleWeather()">Weather: ON</button>
+      <button id="weatherModeToggle" onclick="toggleWeatherMode()">Weather Mode: Auto</button>
+
+      <div id="manualWeatherInputs" style="display: none;">
+        <label for="morningWeather">Morning Weather Icon</label>
+        <select id="morningWeather" onchange="updateManualWeatherIcons()">
+          <option value="">Select Icon</option>
+          <option value="sunny">Sunny</option>
+          <option value="partlyCloudy">Partly Cloudy</option>
+          <option value="cloudy">Cloudy</option>
+          <option value="windy">Windy</option>
+          <option value="cloudyWindy">Cloudy Windy</option>
+          <option value="rainMix">Rain Mix</option>
+          <option value="rain">Rain</option>
+        </select>
+
+        <label for="afternoonWeather">Afternoon Weather Icon</label>
+        <select id="afternoonWeather" onchange="updateManualWeatherIcons()">
+          <option value="">Select Icon</option>
+          <option value="sunny">Sunny</option>
+          <option value="partlyCloudy">Partly Cloudy</option>
+          <option value="cloudy">Cloudy</option>
+          <option value="windy">Windy</option>
+          <option value="cloudyWindy">Cloudy Windy</option>
+          <option value="rainMix">Rain Mix</option>
+          <option value="rain">Rain</option>
+        </select>
+
+        <label for="eveningWeather">Evening Weather Icon</label>
+        <select id="eveningWeather" onchange="updateManualWeatherIcons()">
+          <option value="">Select Icon</option>
+          <option value="sunny">Sunny</option>
+          <option value="partlyCloudy">Partly Cloudy</option>
+          <option value="cloudy">Cloudy</option>
+          <option value="windy">Windy</option>
+          <option value="cloudyWindy">Cloudy Windy</option>
+          <option value="rainMix">Rain Mix</option>
+          <option value="rain">Rain</option>
+        </select>
+      </div>
 
       <div class="upload-container">
         <label for="photos">Selecionar 6 Fotos</label>
@@ -256,6 +312,7 @@
   <script>
     let draggedImg = null;
     let showWeather = true;
+    let isManualWeatherMode = false;
 
     const weatherIcons = {
       sunny: "images/wi-day-sunny.png",
@@ -290,6 +347,11 @@
     }
 
     async function fetchWeatherData(selectedDate) {
+      if (isManualWeatherMode) {
+        updateManualWeatherIcons();
+        return;
+      }
+
       const apiKey = 'YOUR_WEATHERAPI_KEY'; // Replace with your WeatherAPI key
       const location = 'Imbituba';
       const morningWeatherIcon = document.getElementById('morningWeatherIcon');
@@ -358,7 +420,7 @@
       showWeather = !showWeather;
       const weatherInfo = document.getElementById('weatherInfo');
       const weatherToggleButton = document.getElementById('weatherToggle');
-      
+
       if (showWeather) {
         weatherInfo.style.display = 'flex';
         weatherToggleButton.textContent = 'Weather: ON';
@@ -368,6 +430,40 @@
         weatherToggleButton.textContent = 'Weather: OFF';
         weatherToggleButton.classList.add('off');
       }
+    }
+
+    function toggleWeatherMode() {
+      isManualWeatherMode = !isManualWeatherMode;
+      const weatherModeToggleButton = document.getElementById('weatherModeToggle');
+      const manualWeatherInputs = document.getElementById('manualWeatherInputs');
+
+      if (isManualWeatherMode) {
+        weatherModeToggleButton.textContent = 'Weather Mode: Manual';
+        weatherModeToggleButton.classList.add('manual');
+        manualWeatherInputs.style.display = 'block';
+        updateManualWeatherIcons();
+      } else {
+        weatherModeToggleButton.textContent = 'Weather Mode: Auto';
+        weatherModeToggleButton.classList.remove('manual');
+        manualWeatherInputs.style.display = 'none';
+        updateDateAndWeather();
+      }
+    }
+
+    function updateManualWeatherIcons() {
+      if (!isManualWeatherMode) return;
+
+      const morningWeatherSelect = document.getElementById('morningWeather');
+      const afternoonWeatherSelect = document.getElementById('afternoonWeather');
+      const eveningWeatherSelect = document.getElementById('eveningWeather');
+
+      const morningWeatherIcon = document.getElementById('morningWeatherIcon');
+      const afternoonWeatherIcon = document.getElementById('afternoonWeatherIcon');
+      const eveningWeatherIcon = document.getElementById('eveningWeatherIcon');
+
+      morningWeatherIcon.src = morningWeatherSelect.value ? weatherIcons[morningWeatherSelect.value] : weatherIcons.cloudy;
+      afternoonWeatherIcon.src = afternoonWeatherSelect.value ? weatherIcons[afternoonWeatherSelect.value] : weatherIcons.cloudy;
+      eveningWeatherIcon.src = eveningWeatherSelect.value ? weatherIcons[eveningWeatherSelect.value] : weatherIcons.cloudy;
     }
 
     function updateVesselName() {
@@ -392,7 +488,7 @@
           const img = document.createElement("img");
           img.src = e.target.result;
           img.draggable = true;
-          img.crossOrigin = "anonymous"; // Ensure images are treated as anonymous
+          img.crossOrigin = "anonymous";
           img.ondragstart = (ev) => {
             draggedImg = img;
             ev.dataTransfer.setData("text/plain", e.target.result);
@@ -430,18 +526,16 @@
       html2canvas(snapshot, {
         width: exportWidth,
         height: exportHeight,
-        scale: 1, // Adjust scale if needed for better quality
-        backgroundColor: '#fff', // Explicit white background
-        useCORS: true, // Handle cross-origin images
-        logging: true // Enable logging for debugging
+        scale: 1,
+        backgroundColor: '#fff',
+        useCORS: true,
+        logging: true
       }).then(canvas => {
-        // Ensure canvas has a white background
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = '#fff';
         ctx.fillRect(0, 0, exportWidth, exportHeight);
         ctx.drawImage(canvas, 0, 0);
 
-        // Export as JPEG
         const link = document.createElement('a');
         link.download = `snapshot-${timestamp}.jpeg`;
         link.href = canvas.toDataURL("image/jpeg", 0.95);
