@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vessel Operation Snapshot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&display=swap" rel="stylesheet" crossOrigin="anonymous">
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      margin: 0;
+      padding: 0;
+      text-transform: uppercase;
+      background-color: #fff;
+      color: #000;
+    }
+    .editor-container {
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+      height: calc(100vh - 40px);
+      box-sizing: border-box;
+    }
+    .form-section {
+      flex: 1;
+      padding-right: 20px;
+      overflow-y: auto;
+    }
+    .snapshot-container {
+      border: none;
+      padding: 0;
+      position: relative;
+      width: 720px;
+      height: 800px;
+      max-width: 100%;
+    }
+    .container {
+      width: 720px;
+      height: 800px;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 240px);
+      grid-template-rows: repeat(2, 385px);
+      gap: 0;
+      width: 720px;
+      height: 770px;
+    }
+    .photo-grid img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      cursor: move;
+    }
+    .info-section {
+      width: 720px;
+      height: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0 10px;
+      margin: 0;
+      font-weight: bold;
+      font-size: 0.7rem;
+    }
+    .info-content {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .left-info {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .vessel-name::after {
+      content: ' | ';
+      margin-right: 5px;
+    }
+    .vessel-name:empty::after {
+      content: '';
+      margin-right: 0;
+    }
+    .weather-info {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .weather-date {
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+    .weather-icon-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .weather-icon-pair {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .weather-icon-label {
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+    .weather-icon-separator {
+      font-size: 0.7rem;
+      color: #000;
+      margin: 0 3px;
+    }
+    .weather-icons img {
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
+    }
+    .upload-container {
+      margin-bottom: 10px;
+    }
+    .upload-container input[type='file'] {
+      display: block;
+      margin-bottom: 10px;
+    }
+    label {
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, select {
+      padding: 5px;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #weatherToggle {
+      background-color: #28a745;
+    }
+    #weatherToggle.off {
+      background-color: #dc3545;
+    }
+  </style>
+</head>
+<body>
+  <div class="editor-container">
+    <div class="form-section">
+      <label for="vessel">Nome do Navio</label>
+      <input type="text" id="vessel" oninput="updateVesselName()" />
+
+      <label for="pierSelect">Pier</label>
+      <select id="pierSelect">
+        <option value="PIER 1">Pier 1</option>
+        <option value="PIER 2">Pier 2</option>
+        <option value="PIER 3">Pier 3</option>
+      </select>
+
+      <label for="date">Data</label>
+      <input type="date" id="date" onchange="updateDateAndWeather()" />
+
+      <label for="period">Período</label>
+      <select id="period" onchange="document.getElementById('reportPeriod').textContent = this.value || ''">
+        <option value="">--</option>
+        <option value="0700x1300">0700x1300</option>
+        <option value="1300x1900">1300x1900</option>
+        <option value="1900x0100">1900x0100</option>
+        <option value="0100x0700">0100x0700</option>
+      </select>
+
+      <label for="hatch">Porões</label>
+      <select id="hatch" onchange="document.getElementById('hatchInfo').textContent = this.value">
+        <option>CH1</option>
+        <option>CH2</option>
+        <option>CH3</option>
+        <option>CH4</option>
+        <option>CH5</option>
+        <option>CH6</option>
+        <option>CH7</option>
+      </select>
+
+      <label for="gangs">Gangs</label>
+      <select id="gangs" onchange="document.getElementById('gangInfo').textContent = this.value">
+        <option>01 GANG</option>
+        <option>02 GANGS</option>
+      </select>
+
+      <button id="weatherToggle" onclick="toggleWeather()">Weather: ON</button>
+
+      <div class="upload-container">
+        <label for="photos">Selecionar 6 Fotos</label>
+        <input type="file" id="photos" accept="image/*" multiple onchange="handleUpload(event)" />
+      </div>
+
+      <button onclick="exportJPEG()">EXPORTAR</button>
+    </div>
+
+    <div class="snapshot-container" id="snapshot">
+      <div class="container">
+        <div class="photo-grid" id="photoGrid"></div>
+
+        <div class="info-section">
+          <div class="info-content">
+            <div class="left-info">
+              <span id="vesselName" class="vessel-name"></span>
+              <span id="reportPeriod"></span> | <span id="hatchInfo">CH1</span> | <span id="gangInfo">01 GANG</span>
+            </div>
+            <div class="weather-info" id="weatherInfo">
+              <span class="weather-date" id="reportDate">05-07-2025</span>
+              <div class="weather-icon-group" id="weatherIcons">
+                <div class="weather-icon-pair">
+                  <span class="weather-icon-label">AM</span>
+                  <img id="morningWeatherIcon" src="images/wi-cloudy.png" alt="morning weather" />
+                </div>
+                <span class="weather-icon-separator">|</span>
+                <div class="weather-icon-pair">
+                  <span class="weather-icon-label">Aft</span>
+                  <img id="afternoonWeatherIcon" src="images/wi-cloudy.png" alt="afternoon weather" />
+                </div>
+                <span class="weather-icon-separator">|</span>
+                <div class="weather-icon-pair">
+                  <span class="weather-icon-label">Eve</span>
+                  <img id="eveningWeatherIcon" src="images/wi-cloudy.png" alt="evening weather" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+  <script>
+    let draggedImg = null;
+    let showWeather = true;
+
+    const weatherIcons = {
+      sunny: "images/wi-day-sunny.png",
+      partlyCloudy: "images/wi-cloud.png",
+      cloudy: "images/wi-cloudy.png",
+      windy: "images/wi-day-windy.png",
+      cloudyWindy: "images/wi-day-cloudy-windy.png",
+      rainMix: "images/wi-rain-mix.png",
+      rain: "images/wi-rain.png"
+    };
+
+    function getWeatherIcon(condition, windSpeed) {
+      condition = condition.toLowerCase();
+      if (condition.includes('sunny') || condition.includes('clear')) {
+        return weatherIcons.sunny;
+      } else if (condition.includes('partly cloudy')) {
+        return weatherIcons.partlyCloudy;
+      } else if (condition.includes('cloudy') || condition.includes('overcast')) {
+        if (windSpeed > 20) {
+          return weatherIcons.cloudyWindy;
+        }
+        return weatherIcons.cloudy;
+      } else if (condition.includes('rain') || condition.includes('shower')) {
+        if (condition.includes('light') || condition.includes('drizzle')) {
+          return weatherIcons.rainMix;
+        }
+        return weatherIcons.rain;
+      } else if (windSpeed > 20) {
+        return weatherIcons.windy;
+      }
+      return weatherIcons.cloudy;
+    }
+
+    async function fetchWeatherData(selectedDate) {
+      const apiKey = 'YOUR_WEATHERAPI_KEY';
+      const location = 'Imbituba';
+      const morningWeatherIcon = document.getElementById('morningWeatherIcon');
+      const afternoonWeatherIcon = document.getElementById('afternoonWeatherIcon');
+      const eveningWeatherIcon = document.getElementById('eveningWeatherIcon');
+
+      const dateToUse = selectedDate || new Date().toISOString().split('T')[0];
+      const selectedDateObj = new Date(dateToUse);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      try {
+        const isPast = selectedDateObj < today;
+        const isFutureOrToday = selectedDateObj >= today;
+
+        let weatherData = {};
+
+        if (isPast) {
+          const historyResponse = await fetch(`https://api.weatherapi.com/v1/history.json?key=${apiKey}&q=${location}&dt=${dateToUse}`);
+          const historyData = await historyResponse.json();
+          const hourlyData = historyData.forecast.forecastday[0].hour;
+
+          weatherData.morning = hourlyData.find(hour => hour.time.endsWith(' 06:00')) || hourlyData[6];
+          weatherData.afternoon = hourlyData.find(hour => hour.time.endsWith(' 14:00')) || hourlyData[14];
+          weatherData.evening = hourlyData.find(hour => hour.time.endsWith(' 20:00')) || hourlyData[20];
+        } else {
+          const forecastResponse = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${location}&dt=${dateToUse}&days=1`);
+          const forecastData = await forecastResponse.json();
+          const hourlyData = forecastData.forecast.forecastday[0].hour;
+
+          weatherData.morning = hourlyData.find(hour => hour.time.endsWith(' 06:00')) || hourlyData[6];
+          weatherData.afternoon = hourlyData.find(hour => hour.time.endsWith(' 14:00')) || hourlyData[14];
+          weatherData.evening = hourlyData.find(hour => hour.time.endsWith(' 20:00')) || hourlyData[20];
+        }
+
+        morningWeatherIcon.src = getWeatherIcon(weatherData.morning.condition.text, weatherData.morning.wind_kph);
+        afternoonWeatherIcon.src = getWeatherIcon(weatherData.afternoon.condition.text, weatherData.afternoon.wind_kph);
+        eveningWeatherIcon.src = getWeatherIcon(weatherData.evening.condition.text, weatherData.evening.wind_kph);
+      } catch (error) {
+        console.error('Error fetching weather data:', error);
+        morningWeatherIcon.src = weatherIcons.cloudy;
+        afternoonWeatherIcon.src = weatherIcons.cloudy;
+        eveningWeatherIcon.src = weatherIcons.cloudy;
+      }
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '05-07-2025';
+      const [year, month, day] = dateStr.split('-');
+      return `${day}-${month}-${year}`;
+    }
+
+    function updateDateAndWeather() {
+      const dateInput = document.getElementById('date');
+      const reportDate = document.getElementById('reportDate');
+      const selectedDate = dateInput.value;
+
+      reportDate.textContent = formatDate(selectedDate);
+
+      if (selectedDate) {
+        fetchWeatherData(selectedDate);
+      }
+    }
+
+    function toggleWeather() {
+      showWeather = !showWeather;
+      const weatherInfo = document.getElementById('weatherInfo');
+      const weatherToggleButton = document.getElementById('weatherToggle');
+      
+      if (showWeather) {
+        weatherInfo.style.display = 'flex';
+        weatherToggleButton.textContent = 'Weather: ON';
+        weatherToggleButton.classList.remove('off');
+      } else {
+        weatherInfo.style.display = 'none';
+        weatherToggleButton.textContent = 'Weather: OFF';
+        weatherToggleButton.classList.add('off');
+      }
+    }
+
+    function updateVesselName() {
+      const vesselInput = document.getElementById('vessel');
+      const vesselNameSpan = document.getElementById('vesselName');
+      const vesselName = vesselInput.value.trim();
+
+      if (vesselName) {
+        vesselNameSpan.textContent = vesselName.toUpperCase();
+      } else {
+        vesselNameSpan.textContent = '';
+      }
+    }
+
+    function handleUpload(event) {
+      const files = Array.from(event.target.files).slice(0, 6);
+      const photoGrid = document.getElementById("photoGrid");
+      photoGrid.innerHTML = "";
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = document.createElement("img");
+          img.src = e.target.result;
+          img.draggable = true;
+          img.ondragstart = (ev) => {
+            draggedImg = img;
+            ev.dataTransfer.setData("text/plain", e.target.result);
+          };
+          img.ondrop = (ev) => {
+            ev.preventDefault();
+            const targetImg = ev.target;
+            if (draggedImg && targetImg && draggedImg !== targetImg) {
+              const temp = draggedImg.src;
+              draggedImg.src = targetImg.src;
+              targetImg.src = temp;
+            }
+            draggedImg = null;
+          };
+          img.ondragover = (ev) => ev.preventDefault();
+          photoGrid.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function exportJPEG() {
+      const snapshot = document.getElementById("snapshot");
+      const exportWidth = 720;
+      const exportHeight = 800;
+
+      const now = new Date();
+      const timestamp = now.getFullYear().toString() +
+                       String(now.getMonth() + 1).padStart(2, '0') +
+                       String(now.getDate()).padStart(2, '0') +
+                       String(now.getHours()).padStart(2, '0') +
+                       String(now.getMinutes()).padStart(2, '0') +
+                       String(now.getSeconds()).padStart(2, '0');
+
+      // Step 1: Use dom-to-image to generate an SVG data URL
+      domtoimage.toSvg(snapshot, {
+        width: exportWidth,
+        height: exportHeight
+      }).then(svgDataUrl => {
+        // Step 2: Create an image element with the SVG data URL
+        const img = new Image();
+        img.src = svgDataUrl;
+        img.crossOrigin = "anonymous"; // Just in case, though it shouldn't be needed for data URLs
+
+        // Wait for the image to load
+        img.onload = () => {
+          // Step 3: Create a canvas and draw the SVG image onto it
+          const canvas = document.createElement('canvas');
+          canvas.width = exportWidth;
+          canvas.height = exportHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, exportWidth, exportHeight);
+
+          // Step 4: Export the canvas as JPEG
+          const link = document.createElement('a');
+          link.download = `snapshot-${timestamp}.jpeg`;
+          link.href = canvas.toDataURL("image/jpeg", 0.95);
+          link.click();
+        };
+
+        img.onerror = (error) => {
+          console.error('Error loading SVG image:', error);
+        };
+      }).catch(error => {
+        console.error('Error exporting snapshot to SVG:', error);
+      });
+    }
+
+    window.onload = function() {
+      updateDateAndWeather();
+    };
+  </script>
+</body>
+</html>
