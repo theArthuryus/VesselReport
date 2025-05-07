@@ -51,12 +51,14 @@
       gap: 0;
       width: 720px;
       height: 770px;
+      background-color: #fff; /* Ensure grid has white background */
     }
     .photo-grid img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       cursor: move;
+      display: block; /* Ensure images render properly */
     }
     .info-section {
       width: 720px;
@@ -117,10 +119,11 @@
       color: #000;
       margin: 0 3px;
     }
-    .weather-icons img {
+    .weather-info img {
       width: 20px;
       height: 20px;
       vertical-align: middle;
+      display: inline-block; /* Ensure weather icons render */
     }
     .upload-container {
       margin-bottom: 10px;
@@ -249,7 +252,7 @@
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
     let draggedImg = null;
     let showWeather = true;
@@ -287,7 +290,7 @@
     }
 
     async function fetchWeatherData(selectedDate) {
-      const apiKey = 'YOUR_WEATHERAPI_KEY';
+      const apiKey = 'YOUR_WEATHERAPI_KEY'; // Replace with your WeatherAPI key
       const location = 'Imbituba';
       const morningWeatherIcon = document.getElementById('morningWeatherIcon');
       const afternoonWeatherIcon = document.getElementById('afternoonWeatherIcon');
@@ -389,6 +392,7 @@
           const img = document.createElement("img");
           img.src = e.target.result;
           img.draggable = true;
+          img.crossOrigin = "anonymous"; // Ensure images are treated as anonymous
           img.ondragstart = (ev) => {
             draggedImg = img;
             ev.dataTransfer.setData("text/plain", e.target.result);
@@ -423,35 +427,28 @@
                        String(now.getMinutes()).padStart(2, '0') +
                        String(now.getSeconds()).padStart(2, '0');
 
-      domtoimage.toSvg(snapshot, {
+      html2canvas(snapshot, {
         width: exportWidth,
         height: exportHeight,
-        bgcolor: '#fff' // Explicitly set background color for the SVG
-      }).then(svgDataUrl => {
-        const img = new Image();
-        img.src = svgDataUrl;
-        img.crossOrigin = "anonymous";
+        scale: 1, // Adjust scale if needed for better quality
+        backgroundColor: '#fff', // Explicit white background
+        useCORS: true, // Handle cross-origin images
+        logging: true // Enable logging for debugging
+      }).then(canvas => {
+        // Ensure canvas has a white background
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, exportWidth, exportHeight);
+        ctx.drawImage(canvas, 0, 0);
 
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = exportWidth;
-          canvas.height = exportHeight;
-          const ctx = canvas.getContext('2d');
-          ctx.fillStyle = '#fff'; // Fill canvas with white background
-          ctx.fillRect(0, 0, exportWidth, exportHeight); // Ensure canvas has white background
-          ctx.drawImage(img, 0, 0, exportWidth, exportHeight);
-
-          const link = document.createElement('a');
-          link.download = `snapshot-${timestamp}.jpeg`;
-          link.href = canvas.toDataURL("image/jpeg", 0.95);
-          link.click();
-        };
-
-        img.onerror = (error) => {
-          console.error('Error loading SVG image:', error);
-        };
+        // Export as JPEG
+        const link = document.createElement('a');
+        link.download = `snapshot-${timestamp}.jpeg`;
+        link.href = canvas.toDataURL("image/jpeg", 0.95);
+        link.click();
       }).catch(error => {
-        console.error('Error exporting snapshot to SVG:', error);
+        console.error('Error exporting snapshot:', error);
+        alert('Failed to export snapshot. Check console for details.');
       });
     }
 
