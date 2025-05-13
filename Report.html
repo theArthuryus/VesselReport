@@ -457,7 +457,6 @@
         afternoonWeatherIcon.src = getWeatherIcon(weatherData.afternoon.condition.text, weatherData.afternoon.wind_kph);
         eveningWeatherIcon.src = getWeatherIcon(weatherData.evening.condition.text, weatherData.evening.wind_kph);
 
-        // Wait for weather icons to load
         await Promise.all([
           new Promise(resolve => {
             morningWeatherIcon.onload = resolve;
@@ -572,7 +571,6 @@
       afternoonWeatherIcon.src = afternoonWeatherSelect.value ? weatherIcons[afternoonWeatherSelect.value] : weatherIcons.cloudy;
       eveningWeatherIcon.src = eveningWeatherSelect.value ? weatherIcons[eveningWeatherSelect.value] : weatherIcons.cloudy;
 
-      // Wait for weather icons to load in manual mode
       Promise.all([
         new Promise(resolve => {
           morningWeatherIcon.onload = resolve;
@@ -795,9 +793,6 @@
         await checkImagesLoaded();
         console.log('All uploaded images loaded successfully.');
 
-        // Ensure weather icons are loaded (already handled in fetchWeatherData/updateManualWeatherIcons)
-        console.log('Assuming weather icons are loaded (checked during fetch/update).');
-
         console.log('Generating canvas with html2canvas...');
         const canvas = await html2canvas(snapshot, {
           width: snapshotSize.width,
@@ -809,7 +804,16 @@
         });
         console.log('Canvas generated successfully:', canvas);
 
-        // First attempt: Use canvas.toBlob
+        const now = new Date();
+        const timestamp = now.getFullYear().toString() +
+                         String(now.getMonth() + 1).padStart(2, '0') +
+                         String(now.getDate()).padStart(2, '0') +
+                         String(now.getHours()).padStart(2, '0') +
+                         String(now.getMinutes()).padStart(2, '0') +
+                         String(now.getSeconds()).padStart(2, '0');
+        const filename = `snapshot-${timestamp}.jpeg`;
+
+        // Method 1: Try canvas.toBlob with forced download
         console.log('Attempting to export using canvas.toBlob...');
         canvas.toBlob(blob => {
           if (!blob) {
@@ -821,27 +825,25 @@
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
+          link.download = filename;
 
-          const now = new Date();
-          const timestamp = now.getFullYear().toString() +
-                           String(now.getMonth() + 1).padStart(2, '0') +
-                           String(now.getDate()).padStart(2, '0') +
-                           String(now.getHours()).padStart(2, '0') +
-                           String(now.getMinutes()).padStart(2, '0') +
-                           String(now.getSeconds()).padStart(2, '0');
-          link.download = `snapshot-${timestamp}.jpeg`;
-
+          // Dispatch a click event to force download
+          const event = new MouseEvent('click', {
+            view: window,
+            bubbles: true,
+            cancelable: true
+          });
           document.body.appendChild(link);
-          link.click();
+          link.dispatchEvent(event);
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
           console.log('Download initiated successfully using toBlob.');
         }, 'image/jpeg', 0.95);
       } catch (error) {
-        console.error('Error during export:', error);
-        alert('Export failed. Attempting fallback method. Check console for details.');
+        console.error('Error during export with toBlob:', error);
+        alert('Export failed with toBlob. Attempting fallback method. Check console for details.');
 
-        // Fallback: Use canvas.toDataURL
+        // Fallback: Use canvas.toDataURL with a more robust download trigger
         try {
           console.log('Falling back to canvas.toDataURL...');
           const canvas = await html2canvas(snapshot, {
@@ -867,12 +869,20 @@
                            String(now.getHours()).padStart(2, '0') +
                            String(now.getMinutes()).padStart(2, '0') +
                            String(now.getSeconds()).padStart(2, '0');
+          const filename = `snapshot-${timestamp}.jpeg`;
 
           const link = document.createElement('a');
           link.href = dataURL;
-          link.download = `snapshot-${timestamp}.jpeg`;
+          link.download = filename;
+
+          // Force download by dispatching a click event
+          const event = new MouseEvent('click', {
+            view: window,
+            bubbles: true,
+            cancelable: true
+          });
           document.body.appendChild(link);
-          link.click();
+          link.dispatchEvent(event);
           document.body.removeChild(link);
           console.log('Download initiated successfully using toDataURL fallback.');
         } catch (fallbackError) {
