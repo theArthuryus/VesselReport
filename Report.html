@@ -46,8 +46,6 @@
     }
     .photo-grid {
       display: grid;
-      grid-template-columns: repeat(3, 240px);
-      grid-template-rows: repeat(2, 385px);
       gap: 0;
       width: 720px;
       height: 770px;
@@ -185,6 +183,14 @@
 <body>
   <div class="editor-container">
     <div class="form-section">
+      <label for="gridLayout">Grid Layout</label>
+      <select id="gridLayout" onchange="updateGridLayout()">
+        <option value="3x2">3x2 (6 pictures)</option>
+        <option value="2x2">2x2 (4 pictures)</option>
+        <option value="1x2">1x2 (2 pictures)</option>
+        <option value="1x1">1x1 (1 picture)</option>
+      </select>
+
       <label for="vessel">Nome do Navio</label>
       <input type="text" id="vessel" oninput="updateVesselName()" />
 
@@ -266,7 +272,7 @@
       </div>
 
       <div class="upload-container">
-        <label for="photos">Selecionar 6 Fotos</label>
+        <label for="photos">Selecionar Fotos</label>
         <input type="file" id="photos" accept="image/*" multiple onchange="handleUpload(event)" />
       </div>
 
@@ -352,7 +358,7 @@
         return;
       }
 
-      const apiKey = 'YOUR_WEATHERAPI_KEY'; // Replace with your WeatherAPI key
+      const apiKey = 'c6d05006b9854059973180259251305'; // Your WeatherAPI key
       const location = 'Imbituba';
       const morningWeatherIcon = document.getElementById('morningWeatherIcon');
       const afternoonWeatherIcon = document.getElementById('afternoonWeatherIcon');
@@ -365,23 +371,21 @@
 
       try {
         const isPast = selectedDateObj < today;
-        const isFutureOrToday = selectedDateObj >= today;
-
         let weatherData = {};
 
         if (isPast) {
           const historyResponse = await fetch(`https://api.weatherapi.com/v1/history.json?key=${apiKey}&q=${location}&dt=${dateToUse}`);
+          if (!historyResponse.ok) throw new Error(`HTTP error! Status: ${historyResponse.status}`);
           const historyData = await historyResponse.json();
           const hourlyData = historyData.forecast.forecastday[0].hour;
-
           weatherData.morning = hourlyData.find(hour => hour.time.endsWith(' 06:00')) || hourlyData[6];
           weatherData.afternoon = hourlyData.find(hour => hour.time.endsWith(' 14:00')) || hourlyData[14];
           weatherData.evening = hourlyData.find(hour => hour.time.endsWith(' 20:00')) || hourlyData[20];
         } else {
           const forecastResponse = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${location}&dt=${dateToUse}&days=1`);
+          if (!forecastResponse.ok) throw new Error(`HTTP error! Status: ${forecastResponse.status}`);
           const forecastData = await forecastResponse.json();
           const hourlyData = forecastData.forecast.forecastday[0].hour;
-
           weatherData.morning = hourlyData.find(hour => hour.time.endsWith(' 06:00')) || hourlyData[6];
           weatherData.afternoon = hourlyData.find(hour => hour.time.endsWith(' 14:00')) || hourlyData[14];
           weatherData.evening = hourlyData.find(hour => hour.time.endsWith(' 20:00')) || hourlyData[20];
@@ -478,20 +482,83 @@
       }
     }
 
+    function updateGridLayout() {
+      const gridLayout = document.getElementById('gridLayout').value;
+      const photoGrid = document.getElementById('photoGrid');
+      const snapshot = document.getElementById('snapshot');
+      const container = snapshot.querySelector('.container');
+      let gridStyles = {};
+      let snapshotSize = { width: 720, height: 800 };
+
+      switch (gridLayout) {
+        case '3x2':
+          gridStyles = {
+            gridTemplateColumns: 'repeat(3, 240px)',
+            gridTemplateRows: 'repeat(2, 385px)',
+            width: '720px',
+            height: '770px'
+          };
+          break;
+        case '2x2':
+          gridStyles = {
+            gridTemplateColumns: 'repeat(2, 360px)',
+            gridTemplateRows: 'repeat(2, 385px)',
+            width: '720px',
+            height: '770px'
+          };
+          break;
+        case '1x2':
+          gridStyles = {
+            gridTemplateColumns: '1fr',
+            gridTemplateRows: 'repeat(2, 385px)',
+            width: '720px',
+            height: '770px'
+          };
+          break;
+        case '1x1':
+          gridStyles = {
+            gridTemplateColumns: '1fr',
+            gridTemplateRows: '770px',
+            width: '720px',
+            height: '770px'
+          };
+          break;
+      }
+
+      Object.assign(photoGrid.style, gridStyles);
+      container.style.width = `${snapshotSize.width}px`;
+      container.style.height = `${snapshotSize.height}px`;
+      snapshot.style.width = `${snapshotSize.width}px`;
+      snapshot.style.height = `${snapshotSize.height}px`;
+    }
+
     function handleUpload(event) {
-      const files = Array.from(event.target.files).slice(0, 6);
-      const photoGrid = document.getElementById("photoGrid");
-      photoGrid.innerHTML = "";
+      const gridLayout = document.getElementById('gridLayout').value;
+      const maxPhotos = {
+        '3x2': 6,
+        '2x2': 4,
+        '1x2': 2,
+        '1x1': 1
+      }[gridLayout];
+      const files = Array.from(event.target.files).slice(0, maxPhotos);
+      const photoGrid = document.getElementById('photoGrid');
+      photoGrid.innerHTML = '';
+
+      if (files.length !== maxPhotos) {
+        alert(`Please upload exactly ${maxPhotos} photo${maxPhotos > 1 ? 's' : ''} for the ${gridLayout} layout.`);
+        return;
+      }
+
       files.forEach(file => {
         const reader = new FileReader();
         reader.onload = e => {
-          const img = document.createElement("img");
+          const img = document.createElement('img');
           img.src = e.target.result;
           img.draggable = true;
-          img.crossOrigin = "anonymous";
+          img.crossOrigin = 'anonymous';
           img.ondragstart = (ev) => {
             draggedImg = img;
-            ev.dataTransfer.setData("text/plain", e.target.result);
+            ev.dataTransfer.setData('text/plain', e.target.result);
           };
           img.ondrop = (ev) => {
             ev.preventDefault();
@@ -511,9 +578,9 @@
     }
 
     function exportJPEG() {
-      const snapshot = document.getElementById("snapshot");
-      const exportWidth = 720;
-      const exportHeight = 800;
+      const snapshot = document.getElementById('snapshot');
+      const gridLayout = document.getElementById('gridLayout').value;
+      const snapshotSize = { width: 720, height: 800 };
 
       const now = new Date();
       const timestamp = now.getFullYear().toString() +
@@ -524,8 +591,8 @@
                        String(now.getSeconds()).padStart(2, '0');
 
       html2canvas(snapshot, {
-        width: exportWidth,
-        height: exportHeight,
+        width: snapshotSize.width,
+        height: snapshotSize.height,
         scale: 1,
         backgroundColor: '#fff',
         useCORS: true,
@@ -533,12 +600,12 @@
       }).then(canvas => {
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = '#fff';
-        ctx.fillRect(0, 0, exportWidth, exportHeight);
+        ctx.fillRect(0, 0, snapshotSize.width, snapshotSize.height);
         ctx.drawImage(canvas, 0, 0);
 
         const link = document.createElement('a');
         link.download = `snapshot-${timestamp}.jpeg`;
-        link.href = canvas.toDataURL("image/jpeg", 0.95);
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
         link.click();
       }).catch(error => {
         console.error('Error exporting snapshot:', error);
@@ -547,6 +614,7 @@
     }
 
     window.onload = function() {
+      updateGridLayout();
       updateDateAndWeather();
     };
   </script>
