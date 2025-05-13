@@ -13,6 +13,7 @@
       text-transform: uppercase;
       background-color: #fff;
       color: #000;
+      zoom: 85%; /* Set default zoom to 85% for better preview */
     }
     .editor-container {
       display: flex;
@@ -25,6 +26,14 @@
       flex: 1;
       padding-right: 20px;
       overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Center form elements */
+    }
+    .form-section > * {
+      width: 80%; /* Limit width of form elements to 80% */
+      max-width: 400px; /* Optional max-width for larger screens */
+      margin-bottom: 10px;
     }
     .snapshot-container {
       border: none;
@@ -137,20 +146,15 @@
     input, select {
       padding: 5px;
       font-size: 1rem;
-      margin-bottom: 10px;
-      width: 100%;
       box-sizing: border-box;
     }
     button {
       padding: 10px 20px;
       font-size: 1rem;
       font-weight: bold;
-      background-color: #007bff;
       color: white;
       border: none;
       cursor: pointer;
-      margin-top: 10px;
-      width: 100%;
     }
     button:hover {
       background-color: #0056b3;
@@ -163,7 +167,6 @@
     }
     #weatherModeToggle {
       background-color: #ffc107;
-      margin-bottom: 10px;
     }
     #weatherModeToggle.manual {
       background-color: #17a2b8;
@@ -174,9 +177,10 @@
     #manualWeatherInputs select {
       padding: 5px;
       font-size: 1rem;
-      margin-bottom: 10px;
-      width: 100%;
       box-sizing: border-box;
+    }
+    #exportButton {
+      background-color: #007bff;
     }
   </style>
 </head>
@@ -201,8 +205,8 @@
         <option value="PIER 3">Pier 3</option>
       </select>
 
-      <label for="date">Data</label>
-      <input type="date" id="date" onchange="updateDateAndWeather()" />
+      <label for="date">Data (DD-MM-YYYY)</label>
+      <input type="text" id="date" placeholder="DD-MM-YYYY" oninput="updateDateAndWeather()" />
 
       <label for="period">Período</label>
       <select id="period" onchange="document.getElementById('reportPeriod').textContent = this.value || ''">
@@ -276,7 +280,7 @@
         <input type="file" id="photos" accept="image/*" multiple onchange="handleUpload(event)" />
       </div>
 
-      <button onclick="exportJPEG()">EXPORTAR</button>
+      <button id="exportButton" onclick="exportJPEG()">EXPORTAR</button>
     </div>
 
     <div class="snapshot-container" id="snapshot">
@@ -403,22 +407,35 @@
       }
     }
 
-    function formatDate(dateStr) {
+    function formatDateForDisplay(dateStr) {
       if (!dateStr) return '13-05-2025';
       const [year, month, day] = dateStr.split('-');
       return `${day}-${month}-${year}`;
     }
 
+    function formatDateForInput(dateStr) {
+      if (!dateStr) return '13-05-2025';
+      const [day, month, year] = dateStr.split('-');
+      return `${year}-${month}-${day}`; // Convert DD-MM-YYYY to YYYY-MM-DD for API
+    }
+
     function updateDateAndWeather() {
       const dateInput = document.getElementById('date');
       const reportDate = document.getElementById('reportDate');
-      const selectedDate = dateInput.value;
+      let selectedDate = dateInput.value;
 
-      reportDate.textContent = formatDate(selectedDate);
-
-      if (selectedDate) {
-        fetchWeatherData(selectedDate);
+      // Validate and normalize date input (DD-MM-YYYY)
+      const datePattern = /^(\d{2})-(\d{2})-(\d{4})$/;
+      if (!datePattern.test(selectedDate)) {
+        selectedDate = '13-05-2025'; // Fallback to today if invalid
+        dateInput.value = selectedDate;
       }
+
+      reportDate.textContent = selectedDate;
+
+      // Convert to YYYY-MM-DD for API
+      const apiDate = formatDateForInput(selectedDate);
+      fetchWeatherData(apiDate);
     }
 
     function setDefaultDate() {
@@ -426,7 +443,7 @@
       const year = today.getFullYear();
       const month = String(today.getMonth() + 1).padStart(2, '0');
       const day = String(today.getDate()).padStart(2, '0');
-      const todayStr = `${year}-${month}-${day}`; // Format: YYYY-MM-DD
+      const todayStr = `${day}-${month}-${year}`; // Format: DD-MM-YYYY
       const dateInput = document.getElementById('date');
       dateInput.value = todayStr;
       updateDateAndWeather();
@@ -441,6 +458,7 @@
         weatherInfo.style.display = 'flex';
         weatherToggleButton.textContent = 'Weather: ON';
         weatherToggleButton.classList.remove('off');
+        updateDateAndWeather(); // Re-fetch weather data when turning on
       } else {
         weatherInfo.style.display = 'none';
         weatherToggleButton.textContent = 'Weather: OFF';
