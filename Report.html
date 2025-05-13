@@ -11,9 +11,9 @@
       margin: 0;
       padding: 0;
       text-transform: uppercase;
-      background-color: #fff;
+      background-color: #fdf9f3; /* Updated background color */
       color: #000;
-      zoom: 85%; /* Set default zoom to 85% for better preview */
+      zoom: 85%; /* Default zoom for better preview */
     }
     .editor-container {
       display: flex;
@@ -31,8 +31,8 @@
       align-items: center; /* Center form elements */
     }
     .form-section > * {
-      width: 80%; /* Limit width of form elements to 80% */
-      max-width: 400px; /* Optional max-width for larger screens */
+      width: 60%; /* Reduced width for form elements */
+      max-width: 300px; /* Smaller max-width for compact look */
       margin-bottom: 10px;
     }
     .snapshot-container {
@@ -42,7 +42,7 @@
       width: 720px;
       height: 800px;
       max-width: 100%;
-      background-color: #fff;
+      background-color: #fdf9f3; /* Match body background */
     }
     .container {
       width: 720px;
@@ -51,14 +51,14 @@
       margin: 0;
       display: flex;
       flex-direction: column;
-      background-color: #fff;
+      background-color: #fdf9f3; /* Match body background */
     }
     .photo-grid {
       display: grid;
       gap: 0;
       width: 720px;
       height: 770px;
-      background-color: #fff;
+      background-color: #fdf9f3; /* Match body background */
     }
     .photo-grid img {
       width: 100%;
@@ -77,7 +77,7 @@
       margin: 0;
       font-weight: bold;
       font-size: 0.7rem;
-      background-color: #fff;
+      background-color: #fdf9f3; /* Updated text area background */
       color: #000;
     }
     .info-content {
@@ -134,10 +134,24 @@
     }
     .upload-container {
       margin-bottom: 10px;
+      position: relative;
     }
     .upload-container input[type='file'] {
+      opacity: 0;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+    .upload-container label {
       display: block;
-      margin-bottom: 10px;
+      padding: 10px 20px;
+      background-color: #1e465f; /* Standard button color */
+      color: white;
+      text-align: center;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
     }
     label {
       margin-bottom: 5px;
@@ -156,20 +170,17 @@
       border: none;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #0056b3;
-    }
     #weatherToggle {
-      background-color: #28a745;
+      background-color: #1e465f; /* Standard/ON color */
     }
     #weatherToggle.off {
-      background-color: #dc3545;
+      background-color: #f8c6bb; /* OFF color */
     }
     #weatherModeToggle {
-      background-color: #ffc107;
+      background-color: #1e465f; /* Standard/ON color */
     }
     #weatherModeToggle.manual {
-      background-color: #17a2b8;
+      background-color: #1e465f; /* Keep same color for consistency */
     }
     #manualWeatherInputs {
       margin-top: 10px;
@@ -180,7 +191,7 @@
       box-sizing: border-box;
     }
     #exportButton {
-      background-color: #007bff;
+      background-color: #1e465f; /* Standard button color */
     }
   </style>
 </head>
@@ -231,7 +242,7 @@
       <label for="gangs">Gangs</label>
       <select id="gangs" onchange="document.getElementById('gangInfo').textContent = this.value">
         <option>01 GANG</option>
-        <option>02 GANGS</option>
+        <option value="02 GANGS">02 GANGS</option>
       </select>
 
       <button id="weatherToggle" onclick="toggleWeather()">Weather: ON</button>
@@ -414,7 +425,7 @@
     }
 
     function formatDateForInput(dateStr) {
-      if (!dateStr) return '13-05-2025';
+      if (!dateStr) return '2025-05-13';
       const [day, month, year] = dateStr.split('-');
       return `${year}-${month}-${day}`; // Convert DD-MM-YYYY to YYYY-MM-DD for API
     }
@@ -624,12 +635,12 @@
         width: snapshotSize.width,
         height: snapshotSize.height,
         scale: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#fdf9f3', // Match export background
         useCORS: true,
         logging: true
       }).then(canvas => {
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = '#fdf9f3';
         ctx.fillRect(0, 0, snapshotSize.width, snapshotSize.height);
         ctx.drawImage(canvas, 0, 0);
 
