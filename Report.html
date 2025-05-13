@@ -66,6 +66,9 @@
       width: 720px;
       height: 770px;
       background-color: #fdf9f3;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
     .photo-grid img {
       width: 100%;
@@ -73,6 +76,8 @@
       object-fit: cover;
       cursor: move;
       display: block;
+      margin: 0;
+      padding: 0;
     }
     .info-section {
       width: 720px;
@@ -675,7 +680,7 @@
         case '1x1':
           gridStyles = {
             gridTemplateColumns: '1fr',
-            gridTemplateRows: '770px',
+            gridTemplateRows: '1fr',
             width: '720px',
             height: '770px'
           };
@@ -813,7 +818,6 @@
                          String(now.getSeconds()).padStart(2, '0');
         const filename = `snapshot-${timestamp}.jpeg`;
 
-        // Method 1: Try canvas.toBlob with forced download
         console.log('Attempting to export using canvas.toBlob...');
         canvas.toBlob(blob => {
           if (!blob) {
@@ -827,7 +831,6 @@
           link.href = url;
           link.download = filename;
 
-          // Dispatch a click event to force download
           const event = new MouseEvent('click', {
             view: window,
             bubbles: true,
@@ -843,7 +846,6 @@
         console.error('Error during export with toBlob:', error);
         alert('Export failed with toBlob. Attempting fallback method. Check console for details.');
 
-        // Fallback: Use canvas.toDataURL with a more robust download trigger
         try {
           console.log('Falling back to canvas.toDataURL...');
           const canvas = await html2canvas(snapshot, {
@@ -875,7 +877,6 @@
           link.href = dataURL;
           link.download = filename;
 
-          // Force download by dispatching a click event
           const event = new MouseEvent('click', {
             view: window,
             bubbles: true,
