@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vessel Operation Snapshot</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&display=swap" rel="stylesheet" crossOrigin="anonymous">
-  <!-- Flatpickr CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <style>
     body {
@@ -205,10 +204,10 @@
       background-color: #2a5e82;
     }
     #exportButton {
-      background-color: #173a50; /* Slightly darker than other buttons */
+      background-color: #122d40; /* Darker than before */
     }
     #exportButton:hover {
-      background-color: #204d6b; /* Slightly darker hover effect */
+      background-color: #1a3f56; /* Darker hover effect */
     }
     #manualWeatherInputs {
       margin-top: 10px;
@@ -220,6 +219,19 @@
     }
     #hatch2Container {
       display: none;
+    }
+    .inline-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .inline-label label {
+      margin-bottom: 0;
+      flex-shrink: 0;
+    }
+    .inline-label select {
+      flex-grow: 1;
     }
   </style>
 </head>
@@ -256,18 +268,20 @@
         <option value="0100x0700">0100x0700</option>
       </select>
 
-      <label for="hatch">Hold - 01 Gang</label>
-      <select id="hatch" onchange="updateHatchInfo()">
-        <option>CH1</option>
-        <option>CH2</option>
-        <option>CH3</option>
-        <option>CH4</option>
-        <option>CH5</option>
-        <option>CH6</option>
-        <option>CH7</option>
-      </select>
+      <div class="inline-label">
+        <label for="hatch">Hold - 01 Gang</label>
+        <select id="hatch" onchange="updateHatchInfo()">
+          <option>CH1</option>
+          <option>CH2</option>
+          <option>CH3</option>
+          <option>CH4</option>
+          <option>CH5</option>
+          <option>CH6</option>
+          <option>CH7</option>
+        </select>
+      </div>
 
-      <div id="hatch2Container">
+      <div id="hatch2Container" class="inline-label">
         <label for="hatch2">Hold - 02 Gang</label>
         <select id="hatch2" onchange="updateHatchInfo()">
           <option>CH1</option>
@@ -576,7 +590,7 @@
       gangInfo.textContent = gangs;
 
       if (gangs === '02 GANGS') {
-        hatch2Container.style.display = 'block';
+        hatch2Container.style.display = 'flex';
       } else {
         hatch2Container.style.display = 'none';
       }
@@ -729,12 +743,16 @@
         useCORS: true,
         logging: true
       }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `snapshot-${timestamp}.jpeg`; // Ensure the file is downloaded
-        link.href = canvas.toDataURL('image/jpeg', 0.95);
-        document.body.appendChild(link); // Append to body to ensure click works in all browsers
-        link.click();
-        document.body.removeChild(link); // Clean up
+        canvas.toBlob(blob => {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `snapshot-${timestamp}.jpeg`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url); // Clean up
+        }, 'image/jpeg', 0.95);
       }).catch(error => {
         console.error('Error exporting snapshot:', error);
         alert('Failed to export snapshot. Check console for details.');
