@@ -43,6 +43,7 @@
     .snapshot-container {
       border: none;
       padding: 0;
+      margin: 0;
       position: relative;
       width: 720px;
       height: 800px;
@@ -85,17 +86,21 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 0 10px;
+      padding: 0;
       margin: 0;
       font-weight: bold;
       font-size: 0.7rem;
       background-color: #fdf9f3;
       color: #000;
+      box-sizing: border-box;
     }
     .info-content {
       display: flex;
       align-items: center;
-      gap: 20px;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0 10px;
+      box-sizing: border-box;
     }
     .left-info {
       display: flex;
