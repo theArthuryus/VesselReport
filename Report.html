@@ -13,9 +13,9 @@
       margin: 0;
       padding: 0;
       text-transform: uppercase;
-      background-color: #fdf9f3; /* Main screen background color */
+      background-color: #fdf9f3;
       color: #000;
-      zoom: 85%; /* Default zoom for better preview */
+      zoom: 85%;
     }
     .editor-container {
       display: flex;
@@ -45,7 +45,7 @@
       width: 720px;
       height: 800px;
       max-width: 100%;
-      background-color: #fdf9f3; /* Match main page background */
+      background-color: #fdf9f3;
       flex: 0 0 720px;
     }
     .container {
@@ -55,14 +55,14 @@
       margin: 0;
       display: flex;
       flex-direction: column;
-      background-color: #fdf9f3; /* Match main page background */
+      background-color: #fdf9f3;
     }
     .photo-grid {
       display: grid;
       gap: 0;
       width: 720px;
       height: 770px;
-      background-color: #fdf9f3; /* Match main page background */
+      background-color: #fdf9f3;
     }
     .photo-grid img {
       width: 100%;
@@ -81,7 +81,7 @@
       margin: 0;
       font-weight: bold;
       font-size: 0.7rem;
-      background-color: #fdf9f3; /* Match main page background */
+      background-color: #fdf9f3;
       color: #000;
     }
     .info-content {
@@ -156,7 +156,7 @@
       cursor: pointer;
       font-weight: bold;
       font-size: 1rem;
-      text-transform: none; /* Remove uppercase for this label */
+      text-transform: none;
       transition: background-color 0.3s ease;
     }
     .upload-container label:hover {
@@ -204,6 +204,12 @@
     #weatherModeToggle.manual:hover {
       background-color: #2a5e82;
     }
+    #exportButton {
+      background-color: #173a50; /* Slightly darker than other buttons */
+    }
+    #exportButton:hover {
+      background-color: #204d6b; /* Slightly darker hover effect */
+    }
     #manualWeatherInputs {
       margin-top: 10px;
     }
@@ -211,12 +217,6 @@
       padding: 5px;
       font-size: 1rem;
       box-sizing: border-box;
-    }
-    #exportButton {
-      background-color: #1e465f;
-    }
-    #exportButton:hover {
-      background-color: #2a5e82;
     }
     #hatch2Container {
       display: none;
@@ -234,7 +234,7 @@
         <option value="1x1">1x1 (1 picture)</option>
       </select>
 
-      <label for="vessel">Nome do Navio</label>
+      <label for="vessel">Name of Vessel</label>
       <input type="text" id="vessel" oninput="updateVesselName()" />
 
       <label for="pierSelect">Pier</label>
@@ -244,10 +244,10 @@
         <option value="PIER 3">Pier 3</option>
       </select>
 
-      <label for="date">Data (DD-MM-YYYY)</label>
+      <label for="date">Date (DD-MM-YYYY)</label>
       <input type="text" id="date" placeholder="DD-MM-YYYY" />
 
-      <label for="period">Período</label>
+      <label for="period">Period</label>
       <select id="period" onchange="document.getElementById('reportPeriod').textContent = this.value || ''">
         <option value="">--</option>
         <option value="0700x1300">0700x1300</option>
@@ -256,7 +256,7 @@
         <option value="0100x0700">0100x0700</option>
       </select>
 
-      <label for="hatch">Porões 1</label>
+      <label for="hatch">Hold - 01 Gang</label>
       <select id="hatch" onchange="updateHatchInfo()">
         <option>CH1</option>
         <option>CH2</option>
@@ -268,7 +268,7 @@
       </select>
 
       <div id="hatch2Container">
-        <label for="hatch2">Porões 2</label>
+        <label for="hatch2">Hold - 02 Gang</label>
         <select id="hatch2" onchange="updateHatchInfo()">
           <option>CH1</option>
           <option>CH2</option>
@@ -328,11 +328,11 @@
       </div>
 
       <div class="upload-container">
-        <label for="photos">Selecionar Fotos</label>
+        <label for="photos">Select Images</label>
         <input type="file" id="photos" accept="image/*" multiple onchange="handleUpload(event)" />
       </div>
 
-      <button id="exportButton" onclick="exportJPEG()">EXPORTAR</button>
+      <button id="exportButton" onclick="exportJPEG()">EXPORT</button>
     </div>
 
     <div class="snapshot-container" id="snapshot">
@@ -376,7 +376,7 @@
     let draggedImg = null;
     let showWeather = true;
     let isManualWeatherMode = false;
-    let uploadedImages = []; // Track uploaded images
+    let uploadedImages = [];
 
     const weatherIcons = {
       sunny: "images/wi-day-sunny.png",
@@ -463,7 +463,7 @@
 
     function formatDate(dateStr) {
       if (!dateStr) return '13-05-2025';
-      const [year, month, day] = dateStr.split('-');
+      const [day, month, year] = dateStr.split('-');
       return `${day}-${month}-${year}`;
     }
 
@@ -633,7 +633,6 @@
       snapshot.style.width = `${snapshotSize.width}px`;
       snapshot.style.height = `${snapshotSize.height}px`;
 
-      // Re-render uploaded images if any
       if (uploadedImages.length > 0) {
         renderImages(uploadedImages);
       }
@@ -693,7 +692,7 @@
         '1x1': 1
       }[gridLayout];
       const files = Array.from(event.target.files).slice(0, maxPhotos);
-      uploadedImages = files; // Store the uploaded files
+      uploadedImages = files;
       renderImages(files);
     }
 
@@ -709,7 +708,6 @@
       const photoGrid = document.getElementById('photoGrid');
       const snapshotSize = { width: 720, height: 800 };
 
-      // Check if the correct number of images are uploaded
       if (photoGrid.children.length !== maxPhotos) {
         alert(`Please upload exactly ${maxPhotos} photo${maxPhotos > 1 ? 's' : ''} for the ${gridLayout} layout before exporting.`);
         return;
@@ -732,9 +730,11 @@
         logging: true
       }).then(canvas => {
         const link = document.createElement('a');
-        link.download = `snapshot-${timestamp}.jpeg`;
+        link.download = `snapshot-${timestamp}.jpeg`; // Ensure the file is downloaded
         link.href = canvas.toDataURL('image/jpeg', 0.95);
+        document.body.appendChild(link); // Append to body to ensure click works in all browsers
         link.click();
+        document.body.removeChild(link); // Clean up
       }).catch(error => {
         console.error('Error exporting snapshot:', error);
         alert('Failed to export snapshot. Check console for details.');
@@ -744,7 +744,7 @@
     window.onload = function() {
       updateGridLayout();
       setDefaultDate();
-      updateGangsInfo(); // Initialize gangs info on load
+      updateGangsInfo();
 
       flatpickr("#date", {
         dateFormat: "d-m-Y",
