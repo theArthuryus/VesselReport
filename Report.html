@@ -14,7 +14,6 @@
       text-transform: uppercase;
       background-color: #fdf9f3;
       color: #000;
-      /* Removed zoom: 85% from body */
     }
     .editor-container {
       display: flex;
@@ -23,10 +22,10 @@
       height: calc(100vh - 40px);
       box-sizing: border-box;
       align-items: flex-start;
-      transform: scale(0.85); /* Apply scaling only to the editor interface */
-      transform-origin: top left; /* Scale from top-left to avoid shifting */
-      width: calc(100% / 0.85); /* Adjust width to compensate for scaling */
-      height: calc(100% / 0.85); /* Adjust height to compensate for scaling */
+      transform: scale(0.85);
+      transform-origin: top left;
+      width: calc(100% / 0.85);
+      height: calc(100% / 0.85);
     }
     .form-section {
       flex: 0 0 300px;
@@ -50,7 +49,7 @@
       max-width: 100%;
       background-color: #fdf9f3;
       flex: 0 0 720px;
-      transform: scale(1); /* Ensure snapshot is not scaled */
+      transform: scale(1);
     }
     .container {
       width: 720px;
@@ -208,15 +207,6 @@
     #weatherModeToggle.manual:hover {
       background-color: #2a5e82;
     }
-    /* Removed #exportButton CSS to apply inline */
-    #manualWeatherInputs {
-      margin-top: 10px;
-    }
-    #manualWeatherInputs select {
-      padding: 5px;
-      font-size: 1rem;
-      box-sizing: border-box;
-    }
     #hatch2Container {
       display: none;
     }
@@ -364,17 +354,17 @@
               <div class="weather-icon-group" id="weatherIcons">
                 <div class="weather-icon-pair">
                   <span class="weather-icon-label">AM</span>
-                  <img id="morningWeatherIcon" src="images/wi-cloudy.png" alt="morning weather" />
+                  <img id="morningWeatherIcon" src="images/wi-cloudy.png" alt="morning weather" crossOrigin="anonymous" />
                 </div>
                 <span class="weather-icon-separator">|</span>
                 <div class="weather-icon-pair">
                   <span class="weather-icon-label">Aft</span>
-                  <img id="afternoonWeatherIcon" src="images/wi-cloudy.png" alt="afternoon weather" />
+                  <img id="afternoonWeatherIcon" src="images/wi-cloudy.png" alt="afternoon weather" crossOrigin="anonymous" />
                 </div>
                 <span class="weather-icon-separator">|</span>
                 <div class="weather-icon-pair">
                   <span class="weather-icon-label">Eve</span>
-                  <img id="eveningWeatherIcon" src="images/wi-cloudy.png" alt="evening weather" />
+                  <img id="eveningWeatherIcon" src="images/wi-cloudy.png" alt="evening weather" crossOrigin="anonymous" />
                 </div>
               </div>
             </div>
@@ -466,6 +456,32 @@
         morningWeatherIcon.src = getWeatherIcon(weatherData.morning.condition.text, weatherData.morning.wind_kph);
         afternoonWeatherIcon.src = getWeatherIcon(weatherData.afternoon.condition.text, weatherData.afternoon.wind_kph);
         eveningWeatherIcon.src = getWeatherIcon(weatherData.evening.condition.text, weatherData.evening.wind_kph);
+
+        // Wait for weather icons to load
+        await Promise.all([
+          new Promise(resolve => {
+            morningWeatherIcon.onload = resolve;
+            morningWeatherIcon.onerror = () => {
+              console.error(`Failed to load morning weather icon: ${morningWeatherIcon.src}`);
+              resolve();
+            };
+          }),
+          new Promise(resolve => {
+            afternoonWeatherIcon.onload = resolve;
+            afternoonWeatherIcon.onerror = () => {
+              console.error(`Failed to load afternoon weather icon: ${afternoonWeatherIcon.src}`);
+              resolve();
+            };
+          }),
+          new Promise(resolve => {
+            eveningWeatherIcon.onload = resolve;
+            eveningWeatherIcon.onerror = () => {
+              console.error(`Failed to load evening weather icon: ${eveningWeatherIcon.src}`);
+              resolve();
+            };
+          })
+        ]);
+        console.log('Weather icons loaded successfully.');
       } catch (error) {
         console.error('Error fetching weather data:', error);
         alert('Failed to fetch weather data. Check console for details or switch to manual mode.');
@@ -555,6 +571,33 @@
       morningWeatherIcon.src = morningWeatherSelect.value ? weatherIcons[morningWeatherSelect.value] : weatherIcons.cloudy;
       afternoonWeatherIcon.src = afternoonWeatherSelect.value ? weatherIcons[afternoonWeatherSelect.value] : weatherIcons.cloudy;
       eveningWeatherIcon.src = eveningWeatherSelect.value ? weatherIcons[eveningWeatherSelect.value] : weatherIcons.cloudy;
+
+      // Wait for weather icons to load in manual mode
+      Promise.all([
+        new Promise(resolve => {
+          morningWeatherIcon.onload = resolve;
+          morningWeatherIcon.onerror = () => {
+            console.error(`Failed to load morning weather icon: ${morningWeatherIcon.src}`);
+            resolve();
+          };
+        }),
+        new Promise(resolve => {
+          afternoonWeatherIcon.onload = resolve;
+          afternoonWeatherIcon.onerror = () => {
+            console.error(`Failed to load afternoon weather icon: ${afternoonWeatherIcon.src}`);
+            resolve();
+          };
+        }),
+        new Promise(resolve => {
+          eveningWeatherIcon.onload = resolve;
+          eveningWeatherIcon.onerror = () => {
+            console.error(`Failed to load evening weather icon: ${eveningWeatherIcon.src}`);
+            resolve();
+          };
+        })
+      ]).then(() => {
+        console.log('Manual weather icons loaded successfully.');
+      });
     }
 
     function updateVesselName() {
@@ -748,23 +791,14 @@
       }
 
       try {
+        console.log('Checking if images are loaded...');
         await checkImagesLoaded();
-        console.log('All images loaded successfully.');
-      } catch (error) {
-        console.error('Error loading images:', error);
-        alert('Some images failed to load. Please try uploading different images.');
-        return;
-      }
+        console.log('All uploaded images loaded successfully.');
 
-      const now = new Date();
-      const timestamp = now.getFullYear().toString() +
-                       String(now.getMonth() + 1).padStart(2, '0') +
-                       String(now.getDate()).padStart(2, '0') +
-                       String(now.getHours()).padStart(2, '0') +
-                       String(now.getMinutes()).padStart(2, '0') +
-                       String(now.getSeconds()).padStart(2, '0');
+        // Ensure weather icons are loaded (already handled in fetchWeatherData/updateManualWeatherIcons)
+        console.log('Assuming weather icons are loaded (checked during fetch/update).');
 
-      try {
+        console.log('Generating canvas with html2canvas...');
         const canvas = await html2canvas(snapshot, {
           width: snapshotSize.width,
           height: snapshotSize.height,
@@ -775,27 +809,76 @@
         });
         console.log('Canvas generated successfully:', canvas);
 
+        // First attempt: Use canvas.toBlob
+        console.log('Attempting to export using canvas.toBlob...');
         canvas.toBlob(blob => {
           if (!blob) {
             console.error('Failed to create blob from canvas.');
-            alert('Failed to export snapshot. Check console for details.');
-            return;
+            throw new Error('Blob creation failed');
           }
           console.log('Blob created successfully:', blob);
 
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
+
+          const now = new Date();
+          const timestamp = now.getFullYear().toString() +
+                           String(now.getMonth() + 1).padStart(2, '0') +
+                           String(now.getDate()).padStart(2, '0') +
+                           String(now.getHours()).padStart(2, '0') +
+                           String(now.getMinutes()).padStart(2, '0') +
+                           String(now.getSeconds()).padStart(2, '0');
           link.download = `snapshot-${timestamp}.jpeg`;
+
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
-          console.log('Download initiated.');
+          console.log('Download initiated successfully using toBlob.');
         }, 'image/jpeg', 0.95);
       } catch (error) {
-        console.error('Error during html2canvas rendering:', error);
-        alert('Failed to export snapshot. Check console for details.');
+        console.error('Error during export:', error);
+        alert('Export failed. Attempting fallback method. Check console for details.');
+
+        // Fallback: Use canvas.toDataURL
+        try {
+          console.log('Falling back to canvas.toDataURL...');
+          const canvas = await html2canvas(snapshot, {
+            width: snapshotSize.width,
+            height: snapshotSize.height,
+            scale: 1,
+            backgroundColor: '#fdf9f3',
+            useCORS: true,
+            logging: true
+          });
+          console.log('Canvas generated successfully for fallback:', canvas);
+
+          const dataURL = canvas.toDataURL('image/jpeg', 0.95);
+          if (!dataURL) {
+            throw new Error('Failed to generate data URL from canvas.');
+          }
+          console.log('Data URL generated successfully:', dataURL.substring(0, 50) + '...');
+
+          const now = new Date();
+          const timestamp = now.getFullYear().toString() +
+                           String(now.getMonth() + 1).padStart(2, '0') +
+                           String(now.getDate()).padStart(2, '0') +
+                           String(now.getHours()).padStart(2, '0') +
+                           String(now.getMinutes()).padStart(2, '0') +
+                           String(now.getSeconds()).padStart(2, '0');
+
+          const link = document.createElement('a');
+          link.href = dataURL;
+          link.download = `snapshot-${timestamp}.jpeg`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          console.log('Download initiated successfully using toDataURL fallback.');
+        } catch (fallbackError) {
+          console.error('Fallback export failed:', fallbackError);
+          alert('Export failed even with fallback method. Please check console for details.');
+        }
       }
     }
 
