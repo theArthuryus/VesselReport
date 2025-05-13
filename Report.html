@@ -19,23 +19,23 @@
     }
     .editor-container {
       display: flex;
-      gap: 10px; /* Reduced gap to bring preview closer to buttons */
+      gap: 10px;
       padding: 20px;
       height: calc(100vh - 40px);
       box-sizing: border-box;
-      align-items: flex-start; /* Align items to the top */
+      align-items: flex-start;
     }
     .form-section {
-      flex: 0 0 300px; /* Fixed width for form section to reduce empty space */
+      flex: 0 0 300px;
       padding-right: 10px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      align-items: center; /* Center form elements */
+      align-items: center;
     }
     .form-section > * {
-      width: 100%; /* Full width within the 300px form section */
-      max-width: 300px; /* Ensure consistency */
+      width: 100%;
+      max-width: 300px;
       margin-bottom: 10px;
     }
     .snapshot-container {
@@ -45,8 +45,8 @@
       width: 720px;
       height: 800px;
       max-width: 100%;
-      background-color: #fff; /* Snapshot background remains white */
-      flex: 0 0 720px; /* Ensure snapshot doesn't stretch */
+      background-color: #fdf9f3; /* Match main page background */
+      flex: 0 0 720px;
     }
     .container {
       width: 720px;
@@ -55,14 +55,14 @@
       margin: 0;
       display: flex;
       flex-direction: column;
-      background-color: #fff; /* Snapshot background remains white */
+      background-color: #fdf9f3; /* Match main page background */
     }
     .photo-grid {
       display: grid;
       gap: 0;
       width: 720px;
       height: 770px;
-      background-color: #fff; /* Snapshot background remains white */
+      background-color: #fdf9f3; /* Match main page background */
     }
     .photo-grid img {
       width: 100%;
@@ -81,7 +81,7 @@
       margin: 0;
       font-weight: bold;
       font-size: 0.7rem;
-      background-color: #fff; /* Snapshot text area remains white */
+      background-color: #fdf9f3; /* Match main page background */
       color: #000;
     }
     .info-content {
@@ -150,16 +150,17 @@
     .upload-container label {
       display: block;
       padding: 10px 20px;
-      background-color: #1e465f; /* Standard button color */
+      background-color: #1e465f;
       color: white;
       text-align: center;
       cursor: pointer;
       font-weight: bold;
       font-size: 1rem;
-      transition: background-color 0.3s ease; /* Smooth hover transition */
+      text-transform: none; /* Remove uppercase for this label */
+      transition: background-color 0.3s ease;
     }
     .upload-container label:hover {
-      background-color: #2a5e82; /* Slightly lighter shade for hover */
+      background-color: #2a5e82;
     }
     label {
       margin-bottom: 5px;
@@ -177,25 +178,31 @@
       color: white;
       border: none;
       cursor: pointer;
-      transition: background-color 0.3s ease; /* Smooth hover transition */
-    }
-    button:hover {
-      background-color: #2a5e82; /* Slightly lighter shade for hover */
+      transition: background-color 0.3s ease;
     }
     #weatherToggle {
-      background-color: #1e465f; /* Standard/ON color */
+      background-color: #1e465f;
+    }
+    #weatherToggle:hover {
+      background-color: #2a5e82;
     }
     #weatherToggle.off {
-      background-color: #f8c6bb; /* OFF color */
+      background-color: #f8c6bb;
     }
     #weatherToggle.off:hover {
-      background-color: #f9d3c9; /* Slightly lighter shade for hover */
+      background-color: #f9d3c9;
     }
     #weatherModeToggle {
-      background-color: #1e465f; /* Standard/ON color */
+      background-color: #1e465f;
+    }
+    #weatherModeToggle:hover {
+      background-color: #2a5e82;
     }
     #weatherModeToggle.manual {
-      background-color: #1e465f; /* Keep same color for consistency */
+      background-color: #1e465f;
+    }
+    #weatherModeToggle.manual:hover {
+      background-color: #2a5e82;
     }
     #manualWeatherInputs {
       margin-top: 10px;
@@ -206,7 +213,13 @@
       box-sizing: border-box;
     }
     #exportButton {
-      background-color: #1e465f; /* Standard button color */
+      background-color: #1e465f;
+    }
+    #exportButton:hover {
+      background-color: #2a5e82;
+    }
+    #hatch2Container {
+      display: none;
     }
   </style>
 </head>
@@ -243,8 +256,8 @@
         <option value="0100x0700">0100x0700</option>
       </select>
 
-      <label for="hatch">Porões</label>
-      <select id="hatch" onchange="document.getElementById('hatchInfo').textContent = this.value">
+      <label for="hatch">Porões 1</label>
+      <select id="hatch" onchange="updateHatchInfo()">
         <option>CH1</option>
         <option>CH2</option>
         <option>CH3</option>
@@ -254,8 +267,21 @@
         <option>CH7</option>
       </select>
 
+      <div id="hatch2Container">
+        <label for="hatch2">Porões 2</label>
+        <select id="hatch2" onchange="updateHatchInfo()">
+          <option>CH1</option>
+          <option>CH2</option>
+          <option>CH3</option>
+          <option>CH4</option>
+          <option>CH5</option>
+          <option>CH6</option>
+          <option>CH7</option>
+        </select>
+      </div>
+
       <label for="gangs">Gangs</label>
-      <select id="gangs" onchange="document.getElementById('gangInfo').textContent = this.value">
+      <select id="gangs" onchange="updateGangsInfo()">
         <option>01 GANG</option>
         <option>02 GANGS</option>
       </select>
@@ -345,12 +371,12 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <!-- Flatpickr JS -->
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
     let draggedImg = null;
     let showWeather = true;
     let isManualWeatherMode = false;
+    let uploadedImages = []; // Track uploaded images
 
     const weatherIcons = {
       sunny: "images/wi-day-sunny.png",
@@ -390,7 +416,7 @@
         return;
       }
 
-      const apiKey = 'c6d05006b9854059973180259251305'; // Your WeatherAPI key
+      const apiKey = 'c6d05006b9854059973180259251305';
       const location = 'Imbituba';
       const morningWeatherIcon = document.getElementById('morningWeatherIcon');
       const afternoonWeatherIcon = document.getElementById('afternoonWeatherIcon');
@@ -407,7 +433,7 @@
 
         if (isPast) {
           const historyResponse = await fetch(`https://api.weatherapi.com/v1/history.json?key=${apiKey}&q=${location}&dt=${dateToUse}`);
-          if (!historyResponse.ok) throw new Error(`HTTP error! Status: ${historyResponse.status}, Message: ${await historyResponse.text()}`);
+          if (!historyResponse.ok) throw new Error(`HTTP error! Status: ${historyResponse.status}`);
           const historyData = await historyResponse.json();
           const hourlyData = historyData.forecast.forecastday[0].hour;
           weatherData.morning = hourlyData.find(hour => hour.time.endsWith(' 06:00')) || hourlyData[6];
@@ -415,7 +441,7 @@
           weatherData.evening = hourlyData.find(hour => hour.time.endsWith(' 20:00')) || hourlyData[20];
         } else {
           const forecastResponse = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${location}&dt=${dateToUse}&days=1`);
-          if (!forecastResponse.ok) throw new Error(`HTTP error! Status: ${forecastResponse.status}, Message: ${await forecastResponse.text()}`);
+          if (!forecastResponse.ok) throw new Error(`HTTP error! Status: ${forecastResponse.status}`);
           const forecastData = await forecastResponse.json();
           const hourlyData = forecastData.forecast.forecastday[0].hour;
           weatherData.morning = hourlyData.find(hour => hour.time.endsWith(' 06:00')) || hourlyData[6];
@@ -449,7 +475,6 @@
       reportDate.textContent = selectedDate;
 
       if (selectedDate) {
-        // Convert DD-MM-YYYY to YYYY-MM-DD for API
         const [day, month, year] = selectedDate.split('-');
         const apiDate = `${year}-${month}-${day}`;
         fetchWeatherData(apiDate);
@@ -461,7 +486,7 @@
       const year = today.getFullYear();
       const month = String(today.getMonth() + 1).padStart(2, '0');
       const day = String(today.getDate()).padStart(2, '0');
-      const todayStr = `${day}-${month}-${year}`; // Format: DD-MM-YYYY
+      const todayStr = `${day}-${month}-${year}`;
       const dateInput = document.getElementById('date');
       dateInput.value = todayStr;
       updateDateAndWeather();
@@ -530,6 +555,35 @@
       }
     }
 
+    function updateHatchInfo() {
+      const hatch1 = document.getElementById('hatch').value;
+      const hatch2 = document.getElementById('hatch2').value;
+      const gangs = document.getElementById('gangs').value;
+      const hatchInfo = document.getElementById('hatchInfo');
+
+      if (gangs === '02 GANGS') {
+        hatchInfo.textContent = `${hatch1}/${hatch2}`;
+      } else {
+        hatchInfo.textContent = hatch1;
+      }
+    }
+
+    function updateGangsInfo() {
+      const gangs = document.getElementById('gangs').value;
+      const gangInfo = document.getElementById('gangInfo');
+      const hatch2Container = document.getElementById('hatch2Container');
+
+      gangInfo.textContent = gangs;
+
+      if (gangs === '02 GANGS') {
+        hatch2Container.style.display = 'block';
+      } else {
+        hatch2Container.style.display = 'none';
+      }
+
+      updateHatchInfo();
+    }
+
     function updateGridLayout() {
       const gridLayout = document.getElementById('gridLayout').value;
       const photoGrid = document.getElementById('photoGrid');
@@ -578,9 +632,14 @@
       container.style.height = `${snapshotSize.height}px`;
       snapshot.style.width = `${snapshotSize.width}px`;
       snapshot.style.height = `${snapshotSize.height}px`;
+
+      // Re-render uploaded images if any
+      if (uploadedImages.length > 0) {
+        renderImages(uploadedImages);
+      }
     }
 
-    function handleUpload(event) {
+    function renderImages(files) {
       const gridLayout = document.getElementById('gridLayout').value;
       const maxPhotos = {
         '3x2': 6,
@@ -588,12 +647,12 @@
         '1x2': 2,
         '1x1': 1
       }[gridLayout];
-      const files = Array.from(event.target.files).slice(0, maxPhotos);
       const photoGrid = document.getElementById('photoGrid');
       photoGrid.innerHTML = '';
 
       if (files.length !== maxPhotos) {
         alert(`Please upload exactly ${maxPhotos} photo${maxPhotos > 1 ? 's' : ''} for the ${gridLayout} layout.`);
+        uploadedImages = [];
         return;
       }
 
@@ -625,10 +684,36 @@
       });
     }
 
+    function handleUpload(event) {
+      const gridLayout = document.getElementById('gridLayout').value;
+      const maxPhotos = {
+        '3x2': 6,
+        '2x2': 4,
+        '1x2': 2,
+        '1x1': 1
+      }[gridLayout];
+      const files = Array.from(event.target.files).slice(0, maxPhotos);
+      uploadedImages = files; // Store the uploaded files
+      renderImages(files);
+    }
+
     function exportJPEG() {
       const snapshot = document.getElementById('snapshot');
       const gridLayout = document.getElementById('gridLayout').value;
+      const maxPhotos = {
+        '3x2': 6,
+        '2x2': 4,
+        '1x2': 2,
+        '1x1': 1
+      }[gridLayout];
+      const photoGrid = document.getElementById('photoGrid');
       const snapshotSize = { width: 720, height: 800 };
+
+      // Check if the correct number of images are uploaded
+      if (photoGrid.children.length !== maxPhotos) {
+        alert(`Please upload exactly ${maxPhotos} photo${maxPhotos > 1 ? 's' : ''} for the ${gridLayout} layout before exporting.`);
+        return;
+      }
 
       const now = new Date();
       const timestamp = now.getFullYear().toString() +
@@ -642,15 +727,10 @@
         width: snapshotSize.width,
         height: snapshotSize.height,
         scale: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#fdf9f3',
         useCORS: true,
         logging: true
       }).then(canvas => {
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(0, 0, snapshotSize.width, snapshotSize.height);
-        ctx.drawImage(canvas, 0, 0);
-
         const link = document.createElement('a');
         link.download = `snapshot-${timestamp}.jpeg`;
         link.href = canvas.toDataURL('image/jpeg', 0.95);
@@ -664,16 +744,15 @@
     window.onload = function() {
       updateGridLayout();
       setDefaultDate();
+      updateGangsInfo(); // Initialize gangs info on load
 
-      // Initialize Flatpickr with DD-MM-YYYY format
       flatpickr("#date", {
-        dateFormat: "d-m-Y", // DD-MM-YYYY format
+        dateFormat: "d-m-Y",
         defaultDate: "today",
         onChange: function(selectedDates, dateStr) {
           updateDateAndWeather();
         },
         onReady: function(selectedDates, dateStr, instance) {
-          // Ensure calendar picker is visible when clicking the input
           instance.input.addEventListener('click', () => {
             instance.open();
           });
