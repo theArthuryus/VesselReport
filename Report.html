@@ -204,10 +204,11 @@
       background-color: #2a5e82;
     }
     #exportButton {
-      background-color: #122d40; /* Darker than before */
+      background-color: #122d40 !important;
+      transition: background-color 0.3s ease !important;
     }
     #exportButton:hover {
-      background-color: #1a3f56; /* Darker hover effect */
+      background-color: #1a3f56 !important;
     }
     #manualWeatherInputs {
       margin-top: 10px;
@@ -652,6 +653,23 @@
       }
     }
 
+    function checkImagesLoaded() {
+      const photoGrid = document.getElementById('photoGrid');
+      const images = photoGrid.getElementsByTagName('img');
+      return Promise.all(
+        Array.from(images).map(img => {
+          if (img.complete) return Promise.resolve();
+          return new Promise(resolve => {
+            img.onload = resolve;
+            img.onerror = () => {
+              console.error(`Failed to load image: ${img.src}`);
+              resolve(); // Continue even if an image fails to load
+            };
+          });
+        })
+      );
+    }
+
     function renderImages(files) {
       const gridLayout = document.getElementById('gridLayout').value;
       const maxPhotos = {
@@ -693,6 +711,9 @@
           img.ondragover = (ev) => ev.preventDefault();
           photoGrid.appendChild(img);
         };
+        reader.onerror = () => {
+          console.error(`Failed to read file: ${file.name}`);
+        };
         reader.readAsDataURL(file);
       });
     }
@@ -710,7 +731,7 @@
       renderImages(files);
     }
 
-    function exportJPEG() {
+    async function exportJPEG() {
       const snapshot = document.getElementById('snapshot');
       const gridLayout = document.getElementById('gridLayout').value;
       const maxPhotos = {
@@ -727,6 +748,16 @@
         return;
       }
 
+      // Wait for all images to load
+      try {
+        await checkImagesLoaded();
+        console.log('All images loaded successfully.');
+      } catch (error) {
+        console.error('Error loading images:', error);
+        alert('Some images failed to load. Please try uploading different images.');
+        return;
+      }
+
       const now = new Date();
       const timestamp = now.getFullYear().toString() +
                        String(now.getMonth() + 1).padStart(2, '0') +
@@ -735,15 +766,25 @@
                        String(now.getMinutes()).padStart(2, '0') +
                        String(now.getSeconds()).padStart(2, '0');
 
-      html2canvas(snapshot, {
-        width: snapshotSize.width,
-        height: snapshotSize.height,
-        scale: 1,
-        backgroundColor: '#fdf9f3',
-        useCORS: true,
-        logging: true
-      }).then(canvas => {
+      try {
+        const canvas = await html2canvas(snapshot, {
+          width: snapshotSize.width,
+          height: snapshotSize.height,
+          scale: 1,
+          backgroundColor: '#fdf9f3',
+          useCORS: true,
+          logging: true
+        });
+        console.log('Canvas generated successfully:', canvas);
+
         canvas.toBlob(blob => {
+          if (!blob) {
+            console.error('Failed to create blob from canvas.');
+            alert('Failed to export snapshot. Check console for details.');
+            return;
+          }
+          console.log('Blob created successfully:', blob);
+
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
@@ -751,12 +792,13 @@
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-          URL.revokeObjectURL(url); // Clean up
+          URL.revokeObjectURL(url);
+          console.log('Download initiated.');
         }, 'image/jpeg', 0.95);
-      }).catch(error => {
-        console.error('Error exporting snapshot:', error);
+      } catch (error) {
+        console.error('Error during html2canvas rendering:', error);
         alert('Failed to export snapshot. Check console for details.');
-      });
+      }
     }
 
     window.onload = function() {
