@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vessel Operation Snapshot</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&display=swap" rel="stylesheet" crossOrigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" crossOrigin="anonymous">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <style>
     body {
@@ -39,6 +40,17 @@
       width: 100%;
       max-width: 300px;
       margin-bottom: 10px;
+    }
+    .logo {
+      font-family: 'Roboto', sans-serif;
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .logo sup {
+      font-size: 0.8rem;
+      vertical-align: super;
     }
     .snapshot-container {
       border: none;
@@ -106,11 +118,13 @@
       align-items: center;
       gap: 5px;
     }
-    .vessel-name::after {
+    .vessel-name::after,
+    .pier-name::after {
       content: ' | ';
       margin-right: 5px;
     }
-    .vessel-name:empty::after {
+    .vessel-name:empty::after,
+    .pier-name:empty::after {
       content: '';
       margin-right: 0;
     }
@@ -170,11 +184,13 @@
       cursor: pointer;
       font-weight: bold;
       font-size: 1rem;
+      font-family: 'Roboto', sans-serif;
       text-transform: none;
-      transition: background-color 0.3s ease;
+      transition: background-color 0.3s ease, opacity 0.3s ease;
     }
     .upload-container label:hover {
       background-color: #2a5e82;
+      opacity: 0.95;
     }
     label {
       margin-bottom: 5px;
@@ -189,6 +205,7 @@
       padding: 10px 20px;
       font-size: 1rem;
       font-weight: bold;
+      font-family: 'Roboto', sans-serif;
       color: white;
       border: none;
       cursor: pointer;
@@ -199,24 +216,28 @@
     }
     #weatherToggle:hover {
       background-color: #2a5e82;
+      opacity: 0.95;
     }
     #weatherToggle.off {
       background-color: #f8c6bb;
     }
     #weatherToggle.off:hover {
       background-color: #f9d3c9;
+      opacity: 0.95;
     }
     #weatherModeToggle {
       background-color: #1e465f;
     }
     #weatherModeToggle:hover {
       background-color: #2a5e82;
+      opacity: 0.95;
     }
     #weatherModeToggle.manual {
       background-color: #1e465f;
     }
     #weatherModeToggle.manual:hover {
       background-color: #2a5e82;
+      opacity: 0.95;
     }
     #hatch2Container {
       display: none;
@@ -239,6 +260,8 @@
 <body>
   <div class="editor-container">
     <div class="form-section">
+      <div class="logo">VesselReport<sup>™</sup></div>
+
       <label for="gridLayout">Grid Layout</label>
       <select id="gridLayout" onchange="updateGridLayout()">
         <option value="3x2">3x2 (6 pictures)</option>
@@ -247,7 +270,6 @@
         <option value="1x1">1x1 (1 picture)</option>
       </select>
 
-      <!-- Moved "Select Images" button here, just below Grid Layout -->
       <div class="upload-container">
         <label for="photos">Select Images</label>
         <input type="file" id="photos" accept="image/*" multiple onchange="handleUpload(event)" />
@@ -257,7 +279,8 @@
       <input type="text" id="vessel" oninput="updateVesselName()" />
 
       <label for="pierSelect">Pier</label>
-      <select id="pierSelect">
+      <select id="pierSelect" onchange="updatePierName()">
+        <option value="">--</option>
         <option value="PIER 1">Pier 1</option>
         <option value="PIER 2">Pier 2</option>
         <option value="PIER 3">Pier 3</option>
@@ -311,7 +334,7 @@
       <button id="weatherModeToggle" onclick="toggleWeatherMode()">Weather Mode: Auto</button>
 
       <div id="manualWeatherInputs" style="display: none;">
-        <label for="morningWeather">Morning Weather Icon</label>
+        <label for="morningWeather">Morning</label>
         <select id="morningWeather" onchange="updateManualWeatherIcons()">
           <option value="">Select Icon</option>
           <option value="sunny">Sunny</option>
@@ -323,7 +346,7 @@
           <option value="rain">Rain</option>
         </select>
 
-        <label for="afternoonWeather">Afternoon Weather Icon</label>
+        <label for="afternoonWeather">Afternoon</label>
         <select id="afternoonWeather" onchange="updateManualWeatherIcons()">
           <option value="">Select Icon</option>
           <option value="sunny">Sunny</option>
@@ -335,7 +358,7 @@
           <option value="rain">Rain</option>
         </select>
 
-        <label for="eveningWeather">Evening Weather Icon</label>
+        <label for="eveningWeather">Evening</label>
         <select id="eveningWeather" onchange="updateManualWeatherIcons()">
           <option value="">Select Icon</option>
           <option value="sunny">Sunny</option>
@@ -359,6 +382,7 @@
           <div class="info-content">
             <div class="left-info">
               <span id="vesselName" class="vessel-name"></span>
+              <span id="pierName" class="pier-name"></span>
               <span id="reportPeriod"></span> | <span id="hatchInfo">CH1</span> | <span id="gangInfo">01 GANG</span>
             </div>
             <div class="weather-info" id="weatherInfo">
@@ -622,6 +646,18 @@
       }
     }
 
+    function updatePierName() {
+      const pierSelect = document.getElementById('pierSelect');
+      const pierNameSpan = document.getElementById('pierName');
+      const pierName = pierSelect.value.trim();
+
+      if (pierName) {
+        pierNameSpan.textContent = pierName;
+      } else {
+        pierNameSpan.textContent = '';
+      }
+    }
+
     function updateHatchInfo() {
       const hatch1 = document.getElementById('hatch').value;
       const hatch2 = document.getElementById('hatch2').value;
@@ -809,7 +845,7 @@
         const canvas = await html2canvas(snapshot, {
           width: snapshotSize.width,
           height: snapshotSize.height,
-          scale: window.devicePixelRatio || 1,
+          scale: (window.devicePixelRatio || 1) * 2, // Increase scale for higher resolution
           backgroundColor: '#fdf9f3',
           useCORS: true,
           logging: true,
@@ -860,7 +896,7 @@
           const canvas = await html2canvas(snapshot, {
             width: snapshotSize.width,
             height: snapshotSize.height,
-            scale: window.devicePixelRatio || 1,
+            scale: (window.devicePixelRatio || 1) * 2,
             backgroundColor: '#fdf9f3',
             useCORS: true,
             logging: true,
@@ -908,6 +944,7 @@
       updateGridLayout();
       setDefaultDate();
       updateGangsInfo();
+      updatePierName();
 
       flatpickr("#date", {
         dateFormat: "d-m-Y",
